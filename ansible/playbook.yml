@@ -8,11 +8,11 @@
 # Debian-specific tasks
 - hosts: debian12
   become: yes
-  tasks:
-    - name: Debian-specific task
-      ansible.builtin.debug:
-        msg: "This task runs only on Debian VM"
+  roles:
+    - common
+    - minikube
 
+# Ubunti-specific tasks
 - hosts: ubuntu22
   become: yes
   roles:

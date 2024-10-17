@@ -1,10 +1,22 @@
 # vagrant@ubuntu22:~$ apt list --all-versions podman
-- name: Ensure Podman is installed at a specific version
-  apt:
+- name: Install Podman on Ubuntu
+  ansible.builtin.apt:
     name: podman=3.4.4+ds1-1ubuntu1
     state: present
     allow_downgrade: yes # --allow-downgrades
-    force_apt_get: yes  
+    force_apt_get: yes
+  when:
+    - ansible_distribution == "Ubuntu"
+    - ansible_distribution_release == "jammy"
+
+- name: Install Podman on Debian
+  ansible.builtin.apt:
+    name: podman=4.3.1+ds1-8+deb12u1
+    state: present
+  when:
+    - ansible_distribution == "Debian"
+    - ansible_distribution_release == "bookworm"
+
 
 # crictl Installation and Validation
 - name: Download crictl binary
