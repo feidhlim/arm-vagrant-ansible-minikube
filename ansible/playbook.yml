@@ -1,0 +1,20 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Test connection
+      ping:
+
+# Debian-specific tasks
+- hosts: debian12
+  become: yes
+  tasks:
+    - name: Debian-specific task
+      ansible.builtin.debug:
+        msg: "This task runs only on Debian VM"
+
+- hosts: ubuntu22
+  become: yes
+  roles:
+    - common
+    - minikube

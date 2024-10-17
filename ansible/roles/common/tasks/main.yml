@@ -1,0 +1,24 @@
+# ansible/roles/common/tasks/main.yml
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install required dependencies
+  apt:
+    name:
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - conntrack
+    state: present
+
+- name: Ensure IPQoS is set to 'lowdelay throughput' in sshd_config
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^IPQoS'
+    line: 'IPQoS lowdelay throughput'
+    state: present
+    create: yes
+  notify: Restart SSH

@@ -1,0 +1,5 @@
+---
+# Global variables for all hosts
+ansible_user: vagrant
+ansible_password: vagrant
+ansible_become: true

@@ -1,0 +1,93 @@
+# vagrant@ubuntu22:~$ apt list --all-versions podman
+- name: Ensure Podman is installed at a specific version
+  apt:
+    name: podman=3.4.4+ds1-1ubuntu1
+    state: present
+    allow_downgrade: yes # --allow-downgrades
+    force_apt_get: yes  
+
+# crictl Installation and Validation
+- name: Download crictl binary
+  ansible.builtin.get_url:
+    url: "https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.31.0/crictl-v1.31.0-linux-arm64.tar.gz"
+    dest: "/tmp/crictl-v1.31.0-linux-arm64.tar.gz"
+    mode: '0644'
+
+- name: Extract crictl binary to /usr/local/bin
+  ansible.builtin.unarchive:
+    src: "/tmp/crictl-v1.31.0-linux-arm64.tar.gz"
+    dest: "/usr/local/bin"
+    remote_src: yes
+    mode: '0755'
+
+- name: Verify crictl installation
+  ansible.builtin.command: crictl --version
+  register: crictl_version
+  changed_when: false
+
+- name: Display crictl version
+  ansible.builtin.debug:
+    msg: "{{ crictl_version.stdout }}"
+
+# Minikube Installation and Validation
+- name: Download Minikube binary
+  get_url:
+    url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-arm64
+    dest: /usr/local/bin/minikube-linux-arm64
+    mode: '0755'
+
+- name: Install Minikube 
+  ansible.builtin.command: "install /usr/local/bin/minikube-linux-arm64 /usr/local/bin/minikube"
+
+- name: Verify Minikube installation
+  ansible.builtin.command: /usr/local/bin/minikube version
+  register: minikube_version
+  changed_when: false
+
+- name: Display Minikube version
+  ansible.builtin.debug:
+    msg: "Minikube version: {{ minikube_version.stdout }}  {{ minikube_version.rc }}"
+  when: minikube_version.rc == 0  # Only display if Minikube is installed
+
+- name: Check if Minikube is running
+  ansible.builtin.command: minikube status
+  become: false
+  become_user: vagrant
+  environment:
+    MINIKUBE_HOME: /home/vagrant
+  register: minikube_status_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Debug Minikube status output
+  ansible.builtin.debug:
+    msg: "Minikube status: {{ minikube_status_check.stdout }} | Error: {{ minikube_status_check.stderr }} {{ minikube_status_check.rc }}"
+
+- name: Handle kubeconfig misconfiguration
+  when: minikube_status_check.rc == 4
+  debug:
+    msg: "Kubeconfig is misconfigured. Consider running `minikube update-context` to fix it."
+
+- name: Check environment
+  shell: env
+  register: env_output
+
+- name: Display ENV output
+  ansible.builtin.debug:
+    var: env_output.stdout_lines        
+
+- name: Start Minikube
+  ansible.builtin.command: minikube start --driver=podman
+  become: false     # Ensures it doesn't escalate privileges to root
+  become_user: vagrant  # Run the command as the vagrant user
+  environment:
+    MINIKUBE_HOME: /home/vagrant
+  register: minikube_output
+  async: 600  # Run this task in the background for a maximum of 20 minutes
+  poll: 5     # Don't wait for the task to complete before proceeding
+
+- name: Add kubectl alias to root's .bashrc
+  ansible.builtin.lineinfile:
+    path: .bashrc
+    line: 'alias kubectl="minikube kubectl --"'
+    create: yes
