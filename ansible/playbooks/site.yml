@@ -1,0 +1,5 @@
+---
+# site.yml
+
+- import_playbook: debian.yml
+#- import_playbook: ubuntu.yml

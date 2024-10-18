@@ -1,0 +1,7 @@
+---
+# Ubunti-specific tasks
+- hosts: ubuntu22
+  become: yes
+  roles:
+    - common
+    - minikube

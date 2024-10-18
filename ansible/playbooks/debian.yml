@@ -1,0 +1,6 @@
+# Debian-specific tasks
+- hosts: debian12
+  become: yes
+  roles:
+    - common
+    - gitlab

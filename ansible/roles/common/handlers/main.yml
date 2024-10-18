@@ -5,3 +5,8 @@
   ansible.builtin.service:
     name: ssh
     state: restarted  
+
+- name: restart nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted

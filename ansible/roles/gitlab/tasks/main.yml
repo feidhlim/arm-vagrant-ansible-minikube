@@ -1,0 +1,82 @@
+---
+# roles/gitlab/tasks/main.yml
+
+- name: Install dependencies for GitLab
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - curl
+    - openssh-server
+    - ca-certificates
+    - tzdata
+
+- name: Add GitLab GPG key
+  ansible.builtin.apt_key:
+    url: "https://packages.gitlab.com/gitlab/gitlab-ce/gpgkey"
+    state: present
+
+- name: Add GitLab's official repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.gitlab.com/gitlab/gitlab-ce/debian/ bookworm main"
+    #repo: "deb https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/ $(lsb_release -cs) main"
+    #repo: "deb https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_17.5.0-ce.0_amd64.deb"
+    state: present
+  when:
+    - ansible_distribution == "Debian"
+    - ansible_distribution_release == "bookworm"
+ 
+#- name: Download GitLab package
+#  ansible.builtin.get_url:
+#    url: "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_17.5.0-ce.0_amd64.deb"
+#    dest: /tmp/gitlab-ce.deb
+#  #when:
+#  #  - ansible_distribution == "Ubuntu"
+#  #  - ansible_distribution_release == "jammy"
+
+- name: Update APT package cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install GitLab
+  ansible.builtin.apt:
+    name: gitlab-ce
+    state: present
+  when:
+    - ansible_distribution == "Debian"
+    - ansible_distribution_release == "bookworm"
+
+- name: Install GitLab CE
+  ansible.builtin.apt:
+    name: gitlab-ce
+    state: present
+  notify: Restart GitLab
+
+- name: Configure GitLab
+  ansible.builtin.template:
+    src: gitlab.rb.j2
+    dest: /etc/gitlab/gitlab.rb
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reconfigure GitLab
+
+- name: Reconfigure GitLab
+  ansible.builtin.command: gitlab-ctl reconfigure
+  when: ansible_distribution == "Debian"
+  register: reconfigure_output
+
+- name: Debug GitLab reconfigure output
+  debug:
+    var: reconfigure_output.stdout_lines
+
+- name: Restart GitLab services
+  ansible.builtin.command: gitlab-ctl restart
+
+- name: Check GitLab status
+  ansible.builtin.command: gitlab-ctl status
+  register: gitlab_status
+
+- name: Debug GitLab status
+  debug:
+    var: gitlab_status.stdout_lines
