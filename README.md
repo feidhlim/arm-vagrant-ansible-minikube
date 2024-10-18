@@ -10,9 +10,10 @@ The goal is to install and configure Minikube to run with the Podman driver.
 
 * Prerequisites  
 * Vagrantfile Configuration  
-* Usage  
-* Common Errors and Solutions  
-* Notes
+* Usage
+* Minikube Common Errors and Solutions 
+* Minikube further Notes / manual steps covered in playbook
+* Gitlab-CE on Debian
 
 ## **Prerequisites**
 
@@ -212,3 +213,13 @@ Minikube type: Control Plane host: Running kubelet: Running apiserver: Running k
 [**vagrant up/ssh fails to connect (on vmware) without ssh\_info\_public=true · Issue \#10730**](https://github.com/hashicorp/vagrant/issues/10730)  
 Instead I found that updating the /etc/ssh/sshd\_config on the server and including this:  
 IPQoS lowdelay throughput  
+
+## GitLab CE Installation
+
+This project includes a role for setting up GitLab Community Edition (CE) on a Debian-based system. Below are the steps and configurations for installing GitLab CE.
+
+### Prerequisites
+
+- A Debian-based system (Debian 12 or compatible)
+- Sufficient system resources (minimum 4 GB RAM recommended)
+- Ansible installed on your local machine
