@@ -1,4 +1,6 @@
-# **Vagrant and Ansible Setup for Minikube on Ubuntu / Debian ARM with Podman driver**
+# **ARM Vagrant and Ansible Setup for :**
+# **Ubuntu Minikube with  Podman driver**
+# **Debian with GitLab-CE**
 
 This project provides a Vagrant setup with an Ansible playbook for provisioning a virtual machine running Ubuntu 22.04 on ARM architecture provided through VMware-fusion. 
 
